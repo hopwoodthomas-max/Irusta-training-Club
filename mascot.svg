@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240">
+  <defs>
+    <pattern id="hatch" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(35)">
+      <line x1="0" y1="0" x2="0" y2="5" stroke="#111" stroke-width="1.6"/>
+    </pattern>
+    <clipPath id="badge"><circle cx="120" cy="120" r="112"/></clipPath>
+  </defs>
+  <circle cx="120" cy="120" r="116" fill="#f2f0eb" stroke="#111" stroke-width="6"/>
+  <circle cx="120" cy="120" r="104" fill="none" stroke="#111" stroke-width="2"/>
+  <g clip-path="url(#badge)" stroke="#111" stroke-linejoin="round" stroke-linecap="round">
+<g id="waves">
+    <!-- river waves -->
+    <path d="M0 196 q15 -8 30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0" fill="none" stroke-width="3"/>
+    <path d="M0 210 q15 -8 30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0" fill="none" stroke-width="3"/>
+
+    
+  </g>
+  <g transform="translate(120 132) scale(0.86) translate(-120 -122)">
+    <!-- torso -->
+    <path d="M78 128 C86 118 98 114 104 114 L136 114 C142 114 154 118 162 128 L176 250 L64 250 Z" fill="#f2f0eb" stroke-width="4.5"/>
+    <path d="M76 150 C86 170 112 172 119 160" fill="none" stroke-width="4"/>
+    <path d="M164 150 C154 170 128 172 121 160" fill="none" stroke-width="4"/>
+    <path d="M82 162 C92 172 108 172 116 166 L116 172 C104 178 90 176 82 162Z" fill="url(#hatch)" stroke="none"/>
+    <path d="M158 162 C148 172 132 172 124 166 L124 172 C136 178 150 176 158 162Z" fill="url(#hatch)" stroke="none"/>
+    <path d="M120 176 L120 240" fill="none" stroke-width="3"/>
+    <path d="M104 190 q8 4 15 0 M121 190 q8 4 15 0 M104 210 q8 4 15 0 M121 210 q8 4 15 0" fill="none" stroke-width="2.5"/>
+    <g id="arm">
+      <path d="M86 122 C72 98 46 94 40 116 C40 108 41 100 40 94 L16 94 C12 110 12 134 22 152 C38 166 68 166 86 152 Z" fill="#f2f0eb" stroke-width="4.5"/>
+      <path d="M86 122 C70 116 62 132 70 148" fill="none" stroke-width="4"/>
+      <path d="M40 116 C38 124 34 128 30 128" fill="none" stroke-width="3"/>
+      <path d="M48 108 C56 104 66 106 72 114 L70 118 C64 112 56 110 50 112Z" fill="url(#hatch)" stroke="none"/>
+      <path d="M30 140 C40 152 56 156 70 152" fill="none" stroke-width="2.5"/>
+      <path d="M14 96 C12 84 18 76 28 75 C38 74 44 82 42 94 Z" fill="#f2f0eb" stroke-width="4"/>
+      <path d="M19 84 h18 M18 90 h21" fill="none" stroke-width="2.5"/>
+    </g>
+    <use href="#arm" transform="translate(240 0) scale(-1 1)"/>
+    <!-- dumbbell in left fist -->
+    <g stroke="none" fill="#111">
+      <rect x="4" y="80" width="48" height="6" rx="3"/>
+      <rect x="2" y="66" width="9" height="34" rx="3"/>
+      <rect x="45" y="66" width="9" height="34" rx="3"/>
+    </g>
+    <path d="M14 96 C12 84 18 76 28 75 C38 74 44 82 42 94 Z" fill="#f2f0eb" stroke-width="4"/>
+    <path d="M19 84 h18 M18 90 h21" fill="none" stroke-width="2.5"/>
+    <!-- mate in right fist -->
+    <path d="M200 76 C194 62 196 50 208 46 L224 46 C236 50 238 62 232 76 C228 84 204 84 200 76Z" fill="#111" stroke-width="3"/>
+    <path d="M200 48 L232 48" stroke="#f2f0eb" stroke-width="3"/>
+    <path d="M206 58 C210 54 216 54 220 56" fill="none" stroke="#f2f0eb" stroke-width="2"/>
+    <path d="M220 48 L226 24 L232 24" fill="none" stroke-width="4"/>
+    <path d="M226 96 C228 84 222 76 212 75 C202 74 196 82 198 94 Z" fill="#f2f0eb" stroke-width="4"/>
+    <path d="M203 84 h18 M201 90 h21" fill="none" stroke-width="2.5"/>
+
+<!-- neck -->
+    <path d="M102 98 L100 118 C108 124 132 124 140 118 L138 98 Z" fill="#f2f0eb" stroke-width="4.5"/>
+    <path d="M104 112 C110 116 130 116 136 112" fill="url(#hatch)" stroke="none"/>
+
+    <!-- ears -->
+    <ellipse cx="90" cy="70" rx="7" ry="10" fill="#f2f0eb" stroke-width="4"/>
+    <ellipse cx="150" cy="70" rx="7" ry="10" fill="#f2f0eb" stroke-width="4"/>
+    <!-- head (bald) -->
+    <path d="M92 60 C90 34 104 22 120 22 C136 22 150 34 148 60 C148 78 144 92 138 100 C132 108 108 108 102 100 C96 92 92 78 92 60Z" fill="#f2f0eb" stroke-width="4.5"/>
+    <!-- bald shine -->
+    <path d="M104 36 C110 29 120 27 128 29" fill="none" stroke-width="3"/>
+    <path d="M100 46 C101 42 102 40 104 38" fill="none" stroke-width="3"/>
+    <!-- buzzcut stubble -->
+    <g fill="#111" stroke="none">
+      <circle cx="96" cy="50" r="1"/><circle cx="99" cy="44" r="1"/><circle cx="144" cy="50" r="1"/><circle cx="141" cy="44" r="1"/><circle cx="137" cy="38" r="1"/><circle cx="95" cy="56" r="1"/><circle cx="145" cy="56" r="1"/>
+    </g>
+    <!-- brows -->
+    <path d="M102 58 L116 60" fill="none" stroke-width="5"/>
+    <path d="M124 60 L138 58" fill="none" stroke-width="5"/>
+    <!-- eyes, looking down at the iron -->
+    <path d="M104 66 q5 4 10 0" fill="none" stroke-width="3.5"/>
+    <path d="M126 66 q5 4 10 0" fill="none" stroke-width="3.5"/>
+    <!-- nose -->
+    <path d="M120 64 L117 80 C119 82 123 82 125 80" fill="none" stroke-width="3"/>
+    <!-- beard -->
+    <path d="M94 72 C95 86 100 98 110 104 C116 108 124 108 130 104 C140 98 145 86 146 72 C142 82 138 86 132 86 C126 84 114 84 108 86 C102 86 98 82 94 72Z" fill="#111" stroke-width="3"/>
+    <!-- mustache gap / mouth -->
+    <path d="M110 92 C116 95 124 95 130 92" fill="none" stroke="#f2f0eb" stroke-width="2.5"/>
+  </g>
+  </g>
+</svg>
