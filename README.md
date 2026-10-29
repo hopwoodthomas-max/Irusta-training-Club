@@ -1,0 +1,109 @@
+# Irusta Training Club 🤜⚡️🤛
+
+La app del ITC: turnos, buen día, rutinas, pesos y pagos. Juan entra como admin y los alumnos como usuarios, desde el celular.
+
+- **App:** web instalable en el celular (PWA). Se publica gratis con GitHub Pages.
+- **Base de datos y login:** [Supabase](https://supabase.com), plan gratis. Alcanza de sobra para 60 alumnos.
+- **Costo:** $0.
+
+Mientras `config.js` esté vacío, la app corre en **modo demo**, con alumnos inventados guardados en el navegador. Sirve para mostrarla sin tocar datos reales.
+
+---
+
+## Seguridad: cómo funciona
+
+| Quién | Qué puede hacer |
+|---|---|
+| Alguien que no está en la lista | Nada. Entra con Google, pero ve “Todavía no estás en la lista”. |
+| Alumno (su email está cargado y activo) | Ve **solo lo suyo**: rutina, pesos, clases y pagos. Responde el buen día, anota sus pesos, pide horario y avisa que pagó. |
+| Admin (Juan) | Ve y edita todo: alumnos, turnos, cobros, ajustes. |
+
+- El login es **un click**: “Entrar con Google”. No hay contraseñas ni códigos, y la sesión queda abierta en el celular.
+- Las reglas viven **en la base de datos** (Row Level Security en `supabase/schema.sql`), no en la app. Aunque alguien toque el código, la base no le devuelve datos ajenos.
+- Para sacar a alguien: **Alumnos → su ficha → Dar de baja**. Pierde el acceso en el momento.
+- Los admins se agregan **solo** desde el SQL Editor de Supabase, nunca desde la app.
+
+---
+
+## Puesta en marcha (una sola vez, ~30 min)
+
+### 1. Supabase (base de datos)
+1. Creá una cuenta en https://supabase.com y después un proyecto nuevo (región: **São Paulo**). Guardá la contraseña que te pide.
+2. Andá a **SQL Editor → New query**, pegá todo el contenido de `supabase/schema.sql` y tocá **Run**.
+3. En el mismo editor, cargá los admins (el email de Google de Juan y el tuyo):
+   ```sql
+   insert into public.admins (email) values ('email-de-juan@gmail.com'), ('tu-email@gmail.com')
+   on conflict do nothing;
+   ```
+4. Andá a **Project Settings → API** y copiá **Project URL** y la clave **anon public**.
+
+### 2. Conectar la app
+Editá `config.js` en GitHub (el ícono del lápiz), pegá los dos valores y hacé commit:
+```js
+window.ITC_CONFIG = {
+  supabaseUrl: "https://xxxxx.supabase.co",
+  supabaseAnonKey: "eyJhbGciOi...",
+};
+```
+La clave `anon` es pública por diseño. La seguridad la ponen las reglas de la base.
+
+### 3. Publicar (GitHub Pages)
+1. En el repo: **Settings → Pages → Source: Deploy from a branch → `main` / `(root)` → Save**.
+2. En 1 o 2 minutos la app queda en `https://hopwoodthomas-max.github.io/Irusta-training-Club/`.
+3. GitHub Pages gratis necesita que el repo sea **público**. No pasa nada: en el repo no hay datos de alumnos, que viven en Supabase.
+
+### 4. Login con Google
+1. Entrá a https://console.cloud.google.com y creá un proyecto (“Irusta Training Club”).
+2. **APIs y servicios → Pantalla de consentimiento OAuth**: elegí *Externo*, nombre “Irusta Training Club”, tu email de soporte, guardar. Después tocá **Publicar app**. Si queda en “Prueba”, solo pueden entrar 100 usuarios que cargues a mano.
+3. **Credenciales → Crear credenciales → ID de cliente OAuth → Aplicación web**.
+   - *URI de redireccionamiento autorizados:* `https://xxxxx.supabase.co/auth/v1/callback` (tu Project URL + `/auth/v1/callback`).
+4. Copiá el **Client ID** y el **Client secret**.
+5. En Supabase: **Authentication → Sign In / Providers → Google → Enable**, pegá los dos valores y guardá.
+6. En Supabase: **Authentication → URL Configuration**:
+   - *Site URL:* `https://hopwoodthomas-max.github.io/Irusta-training-Club/`
+   - *Redirect URLs:* agregá la misma dirección.
+
+### 5. Cargar los alumnos
+Juan entra con su Google y va a **Alumnos → Carga rápida**. Pega una línea por alumno:
+```
+Nombre; celular; email; veces por semana; días; hora
+Lucía Pérez; 11 2345 6789; lucia@gmail.com; 3; lun mie vie; 08:00
+Martín Gómez; 11 3456 7890; martin@gmail.com; 2; mar jue; 18:00
+```
+- El **email** tiene que ser el de la cuenta de Google con la que el alumno va a entrar.
+- El **celular** va con código de área, sin 0 ni 15. Con eso se arman los links de WhatsApp.
+- Después se puede sumar, editar, dar de baja o borrar a cualquiera desde **Alumnos**.
+
+### 6. Pasarle la app a los alumnos
+Mandá el link al grupo. Cada uno lo abre, toca “Entrar con Google” y lo agrega a la pantalla de inicio:
+- iPhone: Compartir → “Agregar a inicio”.
+- Android: menú ⋮ → “Instalar app”.
+
+---
+
+## WhatsApp (v1)
+La app **arma** cada mensaje (buen día, recordatorio de pago, suspensión, lluvia) y Juan lo manda con un toque: se abre WhatsApp con el texto listo. No tiene costo ni necesita aprobación de Meta. El buen día lleva el link de la app para que el alumno confirme con un botón.
+
+Para automatizarlo más adelante se usa la API oficial de WhatsApp Business: plantillas aprobadas, costo por mensaje y solo mensajes uno a uno.
+
+## Mantenimiento
+- **Supabase gratis se pausa si pasa 7 días sin uso.** El workflow `.github/workflows/keepalive.yml` le da un toque cada 3 días. Activalo en la pestaña **Actions** del repo si GitHub lo pide.
+- **Versiones:** cada commit en `main` publica una versión nueva. Para marcar una versión estable: `git tag v1.0 && git push --tags`.
+- **Backup:** Supabase → Database → Backups. También podés exportar cada tabla a CSV desde Table Editor.
+
+## Estructura
+```
+index.html           pantalla base + mascota
+styles.css           estilo (hierro, río, celeste y sol)
+config.js            conexión a Supabase (vacío = demo)
+js/app.js            pantallas de Juan y de los alumnos
+js/data.js           conexión a la base (y modo demo)
+js/routines.js       biblioteca de rutinas y abdominales
+supabase/schema.sql  tablas + reglas de seguridad
+sw.js, manifest      para instalarla como app
+```
+
+## Próximos pasos
+- Que Juan edite la biblioteca de ejercicios desde la app.
+- Buen día automático (WhatsApp Business API + tarea programada en Supabase).
+- Sábados de recupero con inscripción desde la app.
