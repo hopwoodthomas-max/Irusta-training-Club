@@ -10,8 +10,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="ITC">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="assets/icon-192.png">
-<link rel="apple-touch-icon" href="assets/icon-192.png">
+<link rel="icon" href="./icon-192.png">
+<link rel="apple-touch-icon" href="./icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;700&family=UnifrakturCook:wght@700&display=swap">
@@ -107,6 +107,12 @@
 <div id="layer"></div>
 <noscript>Esta app necesita JavaScript.</noscript>
 <script src="config.js"></script>
-<script type="module" src="js/app.js"></script>
+<script type="module" src="app.js" onerror="itcFail('Falta subir app.js al repo.')"></script>
+<script>
+// Si algo no carga, mostrar el motivo en vez de una pantalla negra.
+function itcFail(msg){var a=document.getElementById('app');if(!a||a.dataset.ok)return;
+a.innerHTML='<div class="login" style="text-align:center"><h1 style="font-size:28px">La app no pudo arrancar</h1><p class="muted">'+msg+'</p><p class="small muted">Revisá que app.js, data.js, routines.js y config.js estén subidos al repo.</p></div>';}
+setTimeout(function(){var a=document.getElementById('app');if(a&&!a.innerHTML.trim())itcFail('El código tardó demasiado o falló al cargar.');},6000);
+</script>
 </body>
 </html>

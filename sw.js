@@ -1,8 +1,8 @@
 // Service worker: permite instalar la app y abrirla aunque haya mala señal en el río.
 // Primero intenta la red (siempre la última versión); si no hay, usa la copia guardada.
-const CACHE = "itc-v1";
-const SHELL = ["./", "index.html", "styles.css", "config.js", "js/app.js", "js/data.js", "js/routines.js",
-  "assets/logo.jpg", "assets/icon-192.png", "manifest.webmanifest"];
+const CACHE = "itc-v4";
+const SHELL = ["./", "index.html", "styles.css", "config.js", "app.js", "data.js", "routines.js",
+  "logo.jpg", "icon-192.png", "manifest.webmanifest"];
 self.addEventListener("install", (e) => { e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener("activate", (e) => {
   e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim()));

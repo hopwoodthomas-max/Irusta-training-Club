@@ -1,5 +1,5 @@
 // Irusta Training Club — app
-import { createStore, LIVE, ymd, parseDay, addDays, monthKey } from "./data.js";
+import { createStore, LIVE, NATIVE, CONFIG_ERROR, ymd, parseDay, addDays, monthKey } from "./data.js";
 import { ABS, SPLIT, CARDIO, GROUPS, exercisesFor } from "./routines.js";
 
 /* ================================================================== */
@@ -181,7 +181,7 @@ const history = (rows, ex) => rows.filter((w) => w.exercise === ex).map((w) => +
 /* ================================================================== */
 function vLogin() {
   return `<div class="login">
-    <img class="logo" style="width:120px;height:120px;align-self:center;border-width:3px" alt="Logo ITC" src="assets/logo.jpg">
+    <img class="logo" style="width:120px;height:120px;align-self:center;border-width:3px" alt="Logo ITC" src="logo.jpg">
     <h1>Irusta Training Club</h1>
     <p class="tagline">Fierro, mate y río</p>
     ${LIVE ? `
@@ -213,7 +213,7 @@ function shell(body, tabs, badge = {}) {
   const adm = isAdminView();
   const name = adm ? "Juan" : S.me?.name?.split(" ")[0] || "";
   return `<header class="top">
-    <img class="logo" alt="" src="assets/logo.jpg">
+    <img class="logo" alt="" src="logo.jpg">
     <div class="wm">Irusta Training Club<small>${adm ? "Panel de Juan" : "Vicente López · río"}${db.mode === "demo" ? " · demo" : ""}</small></div>
     <span class="sp"></span>
     <button class="who" data-act="menu">${esc(name)} ▾</button>
@@ -452,7 +452,7 @@ function sHoy() {
   const reply = S.myReplies.find((r) => r.day === TDAY)?.reply || "";
   const msg = fill(S.settings.buen_dia, me, t).replace(/\s*Confirmá acá:.*$/m, "");
   const opts = [["voy", "Voy", "🤜⚡️🤛"], ["tarde", "Llego tarde", "10 min"], ["no", "Hoy no puedo", "reprogramar"]];
-  const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone;
+  const standalone = NATIVE || matchMedia("(display-mode: standalone)").matches || navigator.standalone;
   return `
   <div class="row" style="align-items:flex-start">
     <div class="grow"><div class="date">${DOWL[TDOW]} ${TODAY.getDate()} de ${MON[TODAY.getMonth()]}</div><h1 class="hello">Buen día,<br><em>${esc(me.name.split(" ")[0])}</em></h1></div>${mascot("badge")}
@@ -802,8 +802,35 @@ async function onSession(sess) {
 }
 (async function boot() {
   render();
-  db = await createStore();
+  $("#app").dataset.ok = "1";
+  if (CONFIG_ERROR) { $("#app").innerHTML = `<div class="login" style="text-align:center">${mascot("badge")}<h1 style="font-size:28px">Falta un paso</h1><p class="muted">${esc(CONFIG_ERROR)}</p></div>`; return; }
+  try { db = await createStore(); }
+  catch (e) { $("#app").innerHTML = `<div class="login" style="text-align:center"><h1 style="font-size:28px">Sin conexión con la base</h1><p class="muted">${esc(e.message)}</p></div>`; return; }
   db.onAuth((s) => { if ((s?.email || null) !== (S.auth?.email || null) || S.booting) onSession(s); });
   await onSession(await db.session());
-  if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});
+  if (!NATIVE && "serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});
+  if (NATIVE) setupNative();
 })();
+
+/* ================================================================== */
+/* app nativa (iOS / Android)                                          */
+/* ================================================================== */
+function setupNative() {
+  document.documentElement.classList.add("native");
+  const App = window.Capacitor.registerPlugin("App");
+  // Botón "atrás" de Android: cierra la hoja abierta, vuelve a Hoy, o sale.
+  App.addListener("backButton", () => {
+    if ($("#layer").innerHTML) return closeSheet();
+    if (S.view !== "hoy") { S.view = "hoy"; return render(); }
+    App.exitApp();
+  });
+  // Al volver a la app (ej: después de mandar un WhatsApp) refresca los datos.
+  App.addListener("resume", () => { if (S.role && S.role !== "none") refresh(true).catch(() => {}); });
+  // Los links de WhatsApp abren directo la app de WhatsApp.
+  document.addEventListener("click", (e) => {
+    const a = e.target.closest('a[href^="https://wa.me/"]'); if (!a) return;
+    e.preventDefault();
+    const u = new URL(a.href), phone = u.pathname.replace(/\D/g, ""), text = u.searchParams.get("text") || "";
+    window.location.href = "whatsapp://send?" + (phone ? "phone=" + phone + "&" : "") + "text=" + encodeURIComponent(text);
+  }, true);
+}

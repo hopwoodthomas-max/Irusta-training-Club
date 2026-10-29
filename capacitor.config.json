@@ -1,0 +1,13 @@
+{
+  "appId": "ar.irusta.trainingclub",
+  "appName": "Irusta Training Club",
+  "webDir": "native/www",
+  "server": {
+    "url": "https://hopwoodthomas-max.github.io/Irusta-training-Club/",
+    "errorPath": "offline.html",
+    "androidScheme": "https"
+  },
+  "backgroundColor": "#0d0f11",
+  "android": { "allowMixedContent": false },
+  "ios": { "contentInset": "never", "backgroundColor": "#0d0f11" }
+}

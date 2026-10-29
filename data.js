@@ -4,6 +4,14 @@ import { SPLIT, LIB } from "./routines.js";
 
 const cfg = window.ITC_CONFIG || {};
 export const LIVE = Boolean(cfg.supabaseUrl && cfg.supabaseAnonKey);
+// La clave correcta es la "anon public" (empieza con eyJ…) o la "publishable" (sb_publishable_…).
+export const CONFIG_ERROR = LIVE && !/^(eyJ|sb_publishable_)/.test(String(cfg.supabaseAnonKey).trim())
+  ? "La clave de Supabase en config.js no es la correcta. Copiá la “anon public” (empieza con eyJ…) desde Supabase → Project Settings → API."
+  : "";
+// ¿Corre dentro de la app de iOS/Android (Capacitor)?
+export const NATIVE = Boolean(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+const SCHEME = "ar.irusta.trainingclub";
+const DEEP_LINK = SCHEME + "://auth";
 
 /* ------------------------------------------------------------------ */
 /* utilidades de fecha (día local, formato YYYY-MM-DD)                  */
@@ -22,16 +30,35 @@ export const monthKey = (d) => ymd(d).slice(0, 7);
 async function liveStore() {
   const { createClient } = await import("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/+esm");
   const sb = createClient(cfg.supabaseUrl, cfg.supabaseAnonKey, {
-    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
+    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: !NATIVE, flowType: NATIVE ? "pkce" : "implicit" },
   });
   const ok = ({ data, error }) => { if (error) throw new Error(error.message); return data; };
-  const back = () => location.origin + location.pathname;
+  const back = () => (NATIVE ? DEEP_LINK : location.origin + location.pathname);
+
+  // En la app nativa, Google no deja loguearse dentro de la app: abrimos el
+  // navegador del sistema y volvemos con ar.irusta.trainingclub://auth?code=…
+  if (NATIVE) {
+    const App = window.Capacitor.registerPlugin("App");
+    App.addListener("appUrlOpen", async ({ url }) => {
+      if (!url || !url.startsWith(SCHEME)) return;
+      const q = new URL(url.replace(SCHEME + "://", "https://x/"));
+      const code = q.searchParams.get("code");
+      try { if (code) await sb.auth.exchangeCodeForSession(code); } catch (e) { console.error(e); }
+      try { await Browser.close(); } catch (e) {}
+    });
+  }
+  const Browser = NATIVE ? window.Capacitor.registerPlugin("Browser") : null;
+  async function oauth(provider) {
+    if (!NATIVE) return ok(await sb.auth.signInWithOAuth({ provider, options: { redirectTo: back() } }));
+    const data = ok(await sb.auth.signInWithOAuth({ provider, options: { redirectTo: DEEP_LINK, skipBrowserRedirect: true } }));
+    await Browser.open({ url: data.url, presentationStyle: "popover" });
+  }
 
   return {
     mode: "live",
     async session() { const { data } = await sb.auth.getSession(); return data.session ? { email: data.session.user.email } : null; },
     onAuth(cb) { sb.auth.onAuthStateChange((_e, s) => cb(s ? { email: s.user.email } : null)); },
-    async signInGoogle() { ok(await sb.auth.signInWithOAuth({ provider: "google", options: { redirectTo: back() } })); },
+    async signInGoogle() { await oauth("google"); },
     async signInEmail(email) { ok(await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: back() } })); },
     async signOut() { await sb.auth.signOut(); },
     async whoami() { return ok(await sb.rpc("whoami")); },
