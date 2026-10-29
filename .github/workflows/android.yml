@@ -1,0 +1,60 @@
+# Compila la app de Android (APK) gratis en cada cambio.
+# Descarga: pestaña Actions → la última corrida → "Artifacts" → ITC-android.
+# Si subís un tag (ej: v1.1), además crea un Release con el APK para pasar por link.
+name: App Android
+on:
+  push:
+    branches: [main]
+    paths: ["capacitor.config.json", "package.json", "native/**", ".github/workflows/android.yml"]
+    tags: ["v*"]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      KS: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 17 }
+      - name: Instalar Capacitor
+        run: npm install --no-audit --no-fund
+      - name: Crear proyecto Android
+        run: |
+          npx cap add android
+          bash native/patch-android.sh
+          pip3 install --quiet pillow || python3 -m pip install --quiet --break-system-packages pillow
+          python3 native/make-resources.py
+          npx capacitor-assets generate --android --assetPath native/resources
+          npx cap sync android
+      - name: Firma estable (opcional)
+        # Con estos secretos el APK se puede actualizar encima del anterior.
+        # Sin ellos, usa una firma de prueba (hay que desinstalar antes de actualizar el shell).
+        if: env.KS != ''
+        run: |
+          echo "$KS" | base64 -d > android/app/itc.keystore
+          cat >> android/app/build.gradle <<'GRADLE'
+          android {
+            signingConfigs { itc { storeFile file("itc.keystore"); storePassword System.getenv("KS_PASS"); keyAlias System.getenv("KS_ALIAS"); keyPassword System.getenv("KS_PASS") } }
+            buildTypes { debug { signingConfig signingConfigs.itc } }
+          }
+          GRADLE
+      - name: Compilar APK
+        env:
+          KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KS_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          cd android && chmod +x gradlew && ./gradlew assembleDebug --no-daemon
+          cp app/build/outputs/apk/debug/app-debug.apk ../ITC-android.apk
+      - uses: actions/upload-artifact@v4
+        with: { name: ITC-android, path: ITC-android.apk }
+      - name: Publicar Release (solo con tag)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ITC-android.apk
+          body: "Instalá **ITC-android.apk** en Android: abrilo desde el celular y permití instalar apps de esta fuente."

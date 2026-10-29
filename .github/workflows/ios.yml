@@ -1,0 +1,33 @@
+# Compila el proyecto de iPhone para comprobar que está listo.
+# Para instalarlo en iPhones reales hace falta la cuenta Apple Developer (USD 99/año):
+# ver README → "iPhone (App Store / TestFlight)".
+name: App iOS
+on:
+  push:
+    branches: [main]
+    paths: ["capacitor.config.json", "package.json", "native/**", ".github/workflows/ios.yml"]
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - name: Instalar Capacitor
+        run: npm install --no-audit --no-fund
+      - name: Crear proyecto iOS
+        run: |
+          npx cap add ios
+          bash native/patch-ios.sh
+          pip3 install --quiet pillow || python3 -m pip install --quiet --break-system-packages pillow
+          python3 native/make-resources.py
+          npx capacitor-assets generate --ios --assetPath native/resources
+          npx cap sync ios
+      - name: Compilar (simulador, sin firma)
+        run: |
+          xcodebuild -workspace ios/App/App.xcworkspace -scheme App -configuration Debug \
+            -sdk iphonesimulator -derivedDataPath build CODE_SIGNING_ALLOWED=NO build
+          cd build/Build/Products/Debug-iphonesimulator && zip -qr ../../../../ITC-ios-simulator.zip App.app
+      - uses: actions/upload-artifact@v4
+        with: { name: ITC-ios-simulator, path: ITC-ios-simulator.zip }

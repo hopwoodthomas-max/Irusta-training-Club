@@ -1,0 +1,18 @@
+# Supabase gratis pausa el proyecto si pasa 1 semana sin uso.
+# Esto le da un "toque" cada 3 días para que nunca se duerma.
+name: Mantener Supabase despierto
+on:
+  schedule:
+    - cron: "17 12 */3 * *"
+  workflow_dispatch:
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Ping
+        run: |
+          URL=$(grep -oP 'supabaseUrl:\s*"\K[^"]+' config.js || true)
+          KEY=$(grep -oP 'supabaseAnonKey:\s*"\K[^"]+' config.js || true)
+          if [ -z "$URL" ]; then echo "Sin Supabase configurado todavía"; exit 0; fi
+          curl -fsS "$URL/rest/v1/settings?select=id" -H "apikey: $KEY" -H "Authorization: Bearer $KEY" -o /dev/null -w "HTTP %{http_code}\n"
