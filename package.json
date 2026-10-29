@@ -6,7 +6,7 @@
   "scripts": {
     "android:add": "cap add android && bash native/patch-android.sh",
     "ios:add": "cap add ios && bash native/patch-ios.sh",
-    "icons": "capacitor-assets generate --assetPath native/resources",
+    "icons": "python3 native/make-resources.py && capacitor-assets generate --assetPath native/resources",
     "sync": "cap sync"
   },
   "dependencies": {
